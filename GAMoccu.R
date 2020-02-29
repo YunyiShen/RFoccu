@@ -1,5 +1,7 @@
-RFoccu = function(y, occu_x, det_x,det.formular, occu_x_new=NULL, 
-                  burn_in=1000,n_sample = 10000,thin_by=10,...){
+GAMoccu = function(y,occu_x,occu.formular,
+                   det_x,det.formular, 
+                   occu_x_new=NULL, 
+                  burn_in=1000,n_sample = 10000,thin_by=10){
   # @y: a detection histroy matrix, row as site and col as period, no NA for now
   # @x_occu x_det: 
   #  design matrix for occupancy and detection, detection part should be a list
@@ -7,7 +9,7 @@ RFoccu = function(y, occu_x, det_x,det.formular, occu_x_new=NULL,
   # @burn_in burn in 
   # @n_sample: how many posterior sample needed
   # @thin_by: thinning
-  # @...: ... for randomforest
+
   require(randomForest)
   require(mgcv)
   require(coda)
@@ -26,12 +28,17 @@ RFoccu = function(y, occu_x, det_x,det.formular, occu_x_new=NULL,
   for (i in 1:(burn_in+n_sample)){
     svMisc::progress(((i-1)/(n_sample + burn_in))*100,progress.bar = T)
     # find psi:
-    RF_occu_curr = randomForest(x=occu_x,y=Z_curr,...)
-    psi_curr = predict(RF_occu_curr,newdata = occu_x)
-    psi_curr = psi_curr * (psi_curr>=0)
-    if(!is.null(occu_x_new)) psi_new_curr = predict(RF_occu_curr,newdata = occu_x_new)
+    RF_occu_curr = gam(occu.formular,data = data.frame(y=Z_curr,occu_x),family = binomial())
+    psi_curr_pred = predict(RF_occu_curr,newdata = data.frame(occu_x),se.fit = T)
+    psi_curr_laplace = rnorm(nrow(occu_x),psi_curr_pred$fit,psi_curr_pred$se.fit)
+    psi_curr = 1/(1+exp(-psi_curr_laplace))
     
     
+    if(!is.null(occu_x_new)){
+      psi_new_curr_pred = predict(RF_occu_curr,newdata = data.frame( occu_x_new),se.fit = T)
+      psi_new_curr_laplace = rnorm(nrow(occu_x_new),psi_new_curr_pred$fit,psi_new_curr_pred$fit.se)
+      psi_new_curr = 1/(1+exp(-psi_new_curr_laplace))
+    }
     
     # now, find posterior of p:
     red_det_x = lapply(det_x,function(w,Z_curr){
@@ -40,7 +47,7 @@ RFoccu = function(y, occu_x, det_x,det.formular, occu_x_new=NULL,
     
     red_det_his = y[Z_curr==1,] # only get the detection history when Z=1 (red for reduced)
     red_det_x_long = Reduce(rbind,red_det_x) # get the long version design matrix
-
+    
     red_det_his_long = matrix((red_det_his),length(red_det_his)) # long response 
     # is by period i.e. first row was site1 period1 and second row was site 2 period 1
     rm(red_det_x,red_det_his)
@@ -64,7 +71,7 @@ RFoccu = function(y, occu_x, det_x,det.formular, occu_x_new=NULL,
     # now sample posterior Z
     ## remember this later one only work when no detection at such site
     psi_posterior=joint_p_curr_mat*psi_curr/
-                  ((1-psi_curr)+joint_p_curr_mat*psi_curr)
+      ((1-psi_curr)+joint_p_curr_mat*psi_curr)
     Z_temp = runif(nrow(y))<psi_posterior
     Z_curr[Z_abs==0] = Z_temp[Z_abs==0]
     
