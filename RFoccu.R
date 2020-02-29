@@ -43,11 +43,15 @@ RFoccu = function(y, occu_x, det_x, occu_x_new=NULL,
     red_det_his_long = matrix((red_det_his),length(red_det_his)) # long response 
     # is by period i.e. first row was site1 period1 and second row was site 2 period 1
     rm(red_det_x,red_det_his)
-    # fit detection RF:
-    RF_det_curr = randomForest(x=red_det_x_long,y=red_det_his_long,...)
-    
+    # fit detection discrimant model, logistic here:
+    #RF_det_curr = randomForest(x=red_det_x_long,y=red_det_his_long,...)
+    glm_det_curr = summary( glm(red_det_his_long~red_det_x_long-1,family = binomial))$coefficients
+    # laplacian approximation with flat prior:
+    logit_p_sample_laplace = rnorm(nrow(glm_det_curr),glm_det_curr[,1],glm_det_curr[,2])
+    p_curr = red_det_x_long %*% logit_p_sample_laplace
+    p_curr = 1/(1+exp(-p_curr))
     # current detection probability estimation:
-    p_curr = predict(RF_det_curr,newdata = det_x_long)
+    #p_curr = predict(glm_det_curr,newdata = det_x_long)
     p_curr_mat = (matrix(p_curr,ncol = ncol(y)))  # matrix version 
     
     #likelihood of seeing the detection history

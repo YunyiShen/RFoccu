@@ -3,8 +3,9 @@ source("RFoccu.R")
 
 set.seed(42)
 nsite = 500
-occu_x = rnorm(nsite)
-Z = occu_x>=-0.5 & occu_x<=0.8
+occu_x =cbind(1, rnorm(nsite))
+Z = 1*( occu_x>=-0.5 & occu_x<=0.8)
+
 
 nperiod = 3
 
