@@ -28,14 +28,14 @@ GAMoccu = function(y,occu_x,occu.formular,
   for (i in 1:(burn_in+n_sample)){
     svMisc::progress(((i-1)/(n_sample + burn_in))*100,progress.bar = T)
     # find psi:
-    RF_occu_curr = gam(occu.formular,data = data.frame(y=Z_curr,occu_x),family = binomial())
-    psi_curr_pred = predict(RF_occu_curr,newdata = data.frame(occu_x),se.fit = T)
+    GAM_occu_curr = gam(occu.formular,data = data.frame(y=Z_curr,occu_x),family = binomial())
+    psi_curr_pred = predict(GAM_occu_curr,newdata = data.frame(occu_x),se.fit = T)
     psi_curr_laplace = rnorm(nrow(occu_x),psi_curr_pred$fit,psi_curr_pred$se.fit)
     psi_curr = 1/(1+exp(-psi_curr_laplace))
     
     
     if(!is.null(occu_x_new)){
-      psi_new_curr_pred = predict(RF_occu_curr,newdata = data.frame( occu_x_new),se.fit = T)
+      psi_new_curr_pred = predict(GAM_occu_curr,newdata = data.frame( occu_x_new),se.fit = T)
       psi_new_curr_laplace = rnorm(nrow(occu_x_new),psi_new_curr_pred$fit,psi_new_curr_pred$fit.se)
       psi_new_curr = 1/(1+exp(-psi_new_curr_laplace))
     }

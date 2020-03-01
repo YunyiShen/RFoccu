@@ -8,7 +8,7 @@ require(svMisc)
 set.seed(42)
 
 nsite = 100
-occu_x = runif(nsite,-3,3)
+occu_x = rnorm(nsite,0,1)
 
 
 occu_rate = exp( 1 - 4*occu_x^2+3*occu_x)/(1+exp(1-4*occu_x^2+3*occu_x))
@@ -27,7 +27,7 @@ dethist = matrix(NA,nsite,nperiod)
 for(i in 1:nperiod){
   det_x_temp=rnorm(nsite)
   
-  det_rate = exp(-1+ det_x_temp - occu_x)/(1+exp(-1+det_x_temp - occu_x))
+  det_rate = exp(-2+ det_x_temp - 0*occu_x^2)/(1+exp(-2+det_x_temp - 0*occu_x^2))
   
   dethist[,i] = (runif(nsite)<=det_rate) * Z 
   
