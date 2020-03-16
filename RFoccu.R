@@ -30,7 +30,7 @@ RFoccu = function(y, occu_x, det_x,det.formular, occu_x_new=NULL,
     psi_curr = predict(RF_occu_curr,newdata = occu_x)
     psi_curr = psi_curr * (psi_curr>=0)
     if(!is.null(occu_x_new)) psi_new_curr = predict(RF_occu_curr,newdata = occu_x_new)
-    
+    Z_curr = runif(length(psi_curr))<=psi_curr
     
     
     # now, find posterior of p:
