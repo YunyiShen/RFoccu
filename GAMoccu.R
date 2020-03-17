@@ -40,8 +40,8 @@ GAMoccu = function(y,occu_x,occu.formular,
       psi_new_curr = 1/(1+exp(-psi_new_curr_laplace))
     }
     
-    Z_curr = runif(length(psi_curr))<=psi_curr
-    
+    #Z_temp = runif(length(psi_curr))<=psi_curr
+    #Z_curr[Z_curr==0] = Z_temp[Z_curr==0]    
     # now, find posterior of p:
     red_det_x = lapply(det_x,function(w,Z_curr){
       w[Z_curr==1,]
@@ -89,5 +89,8 @@ GAMoccu = function(y,occu_x,occu.formular,
   }
   
   if(is.null(occu_x_new)) psi_new=NULL
+  
+  cat("\n")
   list(psi=psi, p=p, Z=Z, psi_new=psi_new)
+  
 }

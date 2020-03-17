@@ -4,16 +4,25 @@ require(coda)
 require(mgcv)
 require(randomForest)
 require(svMisc)
+require(pROC)
 
-set.seed(114514)
+set.seed(42)
 
+nrep = 250
+
+roc_RF_stat = c()
+roc_GAM_stat = c()
+roc_naiveGAM_stat = c()
+roc_trueGAM_stat = c()
+
+for(k in 1:nrep){
 nsite = 100
 occu_x = rnorm(2*nsite,0,1)
 occu_x = matrix(occu_x,ncol = 2)
 colnames(occu_x) = c("x1","x2")
 
 occu_rate = exp( 1 - 4*occu_x[,1]^2+3*occu_x[,2])/(1+exp(1-4*occu_x[,1]^2+3*occu_x[,2]))
-plot(occu_x,occu_rate)
+#plot(occu_x,occu_rate)
 
 
 Z=runif(nsite)<=occu_rate
@@ -60,11 +69,18 @@ points(occu_rate,colMeans(test_GAMoccu$psi),col="red")
 points(occu_rate,colMeans(test_RFoccu$psi),col="darkred")
 points(occu_rate,Baseline_GAM$fitted.values)
 
-roc_RF = roc(Z,colMeans(test_RFoccu$psi))
+roc_RF = roc(Z,colMeans(test_RFoccu$Z))
 roc_GAM = roc(Z,colMeans(test_GAMoccu$psi))
 roc_naiveGAM = roc(Z,Baseline_GAM$fitted.values)
 roc_trueGAM = roc(Z,Baseline_true_GAM$fitted.values)
 
+roc_RF_stat = c(roc_RF_stat,roc_RF$auc)
+roc_GAM_stat = c(roc_GAM_stat,roc_GAM$auc)
+roc_naiveGAM_stat = c(roc_naiveGAM_stat, roc_naiveGAM$auc)
+roc_trueGAM_stat = c(roc_trueGAM_stat, roc_trueGAM$auc)
 
+cat("run ",k,"\n\n")
+
+}
 
 
